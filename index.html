@@ -98,39 +98,30 @@
         }
 
         .button {
-            display: inline-block;
-            padding: 20px 50px;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #aaa;
-            background: linear-gradient(45deg, #2a2a2a, #3a3a3a);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 30px;
+            background: rgba(42, 42, 42, 0.8);
             border: 2px solid #555;
-            border-radius: 50px;
+            border-radius: 15px;
             cursor: pointer;
             text-decoration: none;
             box-shadow: 0 0 20px rgba(80, 80, 80, 0.3);
             transition: all 0.3s ease;
-            animation: buttonPulse 2s infinite;
-        }
-
-        @keyframes buttonPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
         }
 
         .button:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 40px rgba(100, 100, 100, 0.5);
-            background: linear-gradient(45deg, #3a3a3a, #2a2a2a);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 30px rgba(100, 100, 100, 0.5);
+            background: rgba(52, 52, 52, 0.9);
             border-color: #777;
         }
 
-        .music-note {
-            position: fixed;
-            font-size: 30px;
-            animation: floatNote 10s linear infinite;
-            pointer-events: none;
-            opacity: 0.6;
+        .button img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
         }
 
         @keyframes floatNote {
@@ -146,26 +137,6 @@
             }
         }
 
-        .audio-control {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(50, 50, 50, 0.5);
-            border: 2px solid #555;
-            color: #aaa;
-            padding: 10px 20px;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            z-index: 100;
-        }
-
-        .audio-control:hover {
-            background: rgba(70, 70, 70, 0.7);
-            box-shadow: 0 0 20px rgba(80, 80, 80, 0.5);
-        }
-
         @media (max-width: 768px) {
             .title { font-size: 2.5rem; }
             .cat-image { width: 200px; height: 200px; }
@@ -179,10 +150,10 @@
     <div class="container">
         <img src="https://cdn.discordapp.com/attachments/1316479920997929062/1421145993411301477/IMG_3014.jpg?ex=68de9058&is=68dd3ed8&hm=e409f3ec8a4398c840c8b733dbc18fad5da2095843253581cb688f86a87e0673&" alt="Cute Cat" class="cat-image">
         <h1 class="title">lordsosiska</h1>
-        <a href="https://astral.rip" class="button"></a>
+        <a href="https://www.astral.rip/members/lordsosiska.126/" class="button">
+            <img src="https://www.astral.rip/styles/io_dark/io/images/logo.png" alt="Astral">
+        </a>
     </div>
-
-    <button class="audio-control" id="audioToggle">🎵 Музыка: Вкл</button>
 
     <audio id="bgMusic" loop>
         <source src="https://hapka.lol/uploads/Riley.mp3" type="audio/mpeg">
@@ -203,20 +174,10 @@
         }
 
         // Создание музыкальных нот
-        const notes = ['🎵', '🎶', '♪', '♫'];
-        for (let i = 0; i < 15; i++) {
-            const note = document.createElement('div');
-            note.className = 'music-note';
-            note.textContent = notes[Math.floor(Math.random() * notes.length)];
-            note.style.left = Math.random() * 100 + '%';
-            note.style.animationDelay = Math.random() * 10 + 's';
-            note.style.animationDuration = (Math.random() * 5 + 8) + 's';
-            document.body.appendChild(note);
-        }
+        // Убрано для чистого дизайна
 
         // Управление музыкой
         const audio = document.getElementById('bgMusic');
-        const audioToggle = document.getElementById('audioToggle');
         let isPlaying = false;
 
         // Попытка автовоспроизведения
@@ -226,32 +187,16 @@
         if (playPromise !== undefined) {
             playPromise.then(() => {
                 isPlaying = true;
-                audioToggle.textContent = '🎵 Музыка: Вкл';
             }).catch(() => {
                 isPlaying = false;
-                audioToggle.textContent = '🎵 Музыка: Выкл (нажми для вкл)';
             });
         }
-
-        // Включение/выключение музыки
-        audioToggle.addEventListener('click', () => {
-            if (isPlaying) {
-                audio.pause();
-                audioToggle.textContent = '🎵 Музыка: Выкл';
-                isPlaying = false;
-            } else {
-                audio.play();
-                audioToggle.textContent = '🎵 Музыка: Вкл';
-                isPlaying = true;
-            }
-        });
 
         // Запуск музыки при первом клике на странице
         document.body.addEventListener('click', () => {
             if (!isPlaying && audio.paused) {
                 audio.play().then(() => {
                     isPlaying = true;
-                    audioToggle.textContent = '🎵 Музыка: Вкл';
                 }).catch(() => {});
             }
         }, { once: true });
