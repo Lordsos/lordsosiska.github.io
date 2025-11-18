@@ -1843,17 +1843,23 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 	end
 
 	do
+		-- Берём встроенный decompile, если есть
 		local Decompiler = decompile
 
+		-- Если явно выключено через опции
 		if OPTIONS.noscripts then
 			ldecompile = function()
 				return "-- Decompiling is disabled"
 			end
-		elseif Decompiler then
+
+		-- Если executor имеет встроенный decompile
+		elseif typeof(Decompiler) == "function" then
+			-- Оборачиваем его в timeout
 			local decomp = construct_TimeoutHandler(Timeout, Decompiler, "Decompiler timed out")
 
 			ldecompile = function(script)
 				local bytecode
+
 				if ScriptCache and getbytecode then
 					local s
 					s, bytecode = getbytecode(script)
@@ -1878,11 +1884,17 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 					if DecompileJobless then
 						return "-- Not found in already decompiled ScriptCache"
 					end
-
 					task.wait()
 				end
 
-				local ok, result = run_with_loading("Decompiling " .. script.Name, true, nil, decomp, script)
+				-- если почему-то run_with_loading nil — вызываем напрямую
+				local ok, result
+				if type(run_with_loading) == "function" then
+					ok, result = run_with_loading("Decompiling " .. script.Name, true, nil, decomp, script)
+				else
+					ok, result = pcall(decomp, script)
+				end
+
 				if not result then
 					ok, result = false, "Empty Output"
 				end
@@ -1904,13 +1916,36 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 				return output
 			end
+
+		-- Если встроенного decompile нет, но есть getscriptbytecode
+		elseif getbytecode then
+			-- очень простой fallback: просто пишем инфу о байткоде
+			ldecompile = function(script)
+				local s, bytecode = getbytecode(script)
+				if not s or not bytecode or bytecode == "" then
+					return "-- Empty or unavailable bytecode"
+				end
+
+				local out = {
+					"-- No builtin decompiler on this executor.",
+					"-- Script: " .. script:GetFullName(),
+					"-- Bytecode length: " .. #bytecode,
+				}
+				if base64encode then
+					table.insert(out, "-- Bytecode (Base64):")
+					table.insert(out, "-- " .. base64encode(bytecode))
+				end
+
+				return table.concat(out, "\n")
+			end
+
+		-- Вообще ничего нет — ни decompile, ни getscriptbytecode
 		else
 			ldecompile = function()
 				return "-- Your Executor does NOT have a Decompiler"
 			end
 		end
 	end
-
 	local function GetLocalPlayer()
 		return service.Players.LocalPlayer
 			or service.Players:GetPropertyChangedSignal("LocalPlayer"):Wait()
