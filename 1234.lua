@@ -2056,6 +2056,61 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 
 	local CHUNK_LIMIT = 200 * 1024 * 1024
 	
+    ----------------------------------------------------------------
+
+    local function get_size_format()
+        local Size
+
+        for i, unit in
+            {
+                "B",
+                "KB",
+                "MB",
+                "GB",
+                "TB",
+            }
+        do
+            if totalsize < 0x400 ^ i then
+                Size = math.floor(totalsize / (0x400 ^ (i - 1)) * 10) / 10 .. " " .. unit
+                break
+            end
+        end
+
+        return Size or "0 B"
+    end
+
+    local CHUNK_LIMIT = 200 * 1024 * 1024 -- 200MB
+
+    local function save_cache(final)
+        -- Склеиваем текущий буфер в строку
+        local savestr = table.concat(savebuffer)
+        currentstr ..= savestr
+
+        -- Обновляем счётчики размеров
+        local savestr_len = #savestr
+        totalsize += savestr_len
+        currentsize += savestr_len
+
+        -- Очищаем буфер
+        table.clear(savebuffer)
+        savebuffer_size = 1
+
+        -- Если текущий кусок превысил лимит или это финальный вызов —
+        -- переносим его в общий список chunks
+        if CHUNK_LIMIT < currentsize or final then
+            table.insert(chunks, { size = currentsize, str = currentstr })
+            currentstr, currentsize = "", 0
+        end
+
+        -- Обновляем GUI статуса
+        if StatusText then
+            StatusText.Text = "Saving.. Size: " .. get_size_format()
+        end
+
+        -- Ждём кадр, чтобы не фризануть клиент
+        wait_for_render()
+    end
+
 	local function save_cache(final)
 		local savestr = table.concat(savebuffer)
 		currentstr ..= savestr
