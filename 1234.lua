@@ -1887,7 +1887,7 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 					task.wait()
 				end
 
-				-- если почему-то run_with_loading nil — вызываем напрямую
+							-- вызов decompiler с timeout/GUI или напрямую
 				local ok, result
 				if type(run_with_loading) == "function" then
 					ok, result = run_with_loading("Decompiling " .. script.Name, true, nil, decomp, script)
@@ -1895,12 +1895,19 @@ local function synsaveinstance(CustomOptions, CustomOptions2)
 					ok, result = pcall(decomp, script)
 				end
 
-				if not result then
-					ok, result = false, "Empty Output"
+				-- нормализуем результат в строку
+				if type(result) ~= "string" then
+					if result == nil then
+						result = "Empty Output"
+					else
+						-- если какой-то другой тип (boolean, table, number) – приводим к строке
+						result = tostring(result)
+					end
 				end
 
 				local output
 				if ok then
+					-- иногда деобфускаторы/декомпиляторы могут вернуть \0
 					result = string.gsub(result, "\0", "\\0")
 					output = result
 				else
